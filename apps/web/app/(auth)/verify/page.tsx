@@ -28,6 +28,7 @@ function transformTokenResponseUser(apiUser: TokenResponseUser): User {
     name: apiUser.name,
     displayName: apiUser.display_name,
     avatarUrl: apiUser.avatar_url,
+    timezone: apiUser.timezone ?? null,
     role: apiUser.is_system_admin ? 'superadmin' : 'user',
     organizationId: null,
     organizationRole: null,
