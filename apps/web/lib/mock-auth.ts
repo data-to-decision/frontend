@@ -126,4 +126,3 @@ export async function simulateVerification(): Promise<void> {
 export async function simulateApiCall<T>(data: T, delay = 500): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(data), delay));
 }
-// Force rebuild Thu Apr  2 03:37:36 IST 2026
