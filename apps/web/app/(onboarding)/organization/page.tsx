@@ -318,7 +318,7 @@ export default function OrganizationPage() {
     <Card variant="elevated" padding="lg">
       <CardHeader className="text-center">
         {/* Icon */}
-        <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-[--color-accent-blue]/20 to-[--color-accent-purple]/20 flex items-center justify-center mb-4">
+        <div className="mx-auto w-16 h-16 rounded-full bg-[--color-accent-blue]/20 flex items-center justify-center mb-4">
           <Building2 className="w-8 h-8 text-[--color-accent-blue]" />
         </div>
         <CardTitle className="text-2xl">
@@ -342,7 +342,7 @@ export default function OrganizationPage() {
                 {logoPreview ? (
                   <AvatarImage src={logoPreview} alt="Organization logo" />
                 ) : null}
-                <AvatarFallback className="bg-gradient-to-br from-[--color-accent-indigo] to-[--color-accent-purple]">
+                <AvatarFallback className="bg-[--color-accent-indigo]">
                   {watchedName ? (
                     getInitials(watchedName)
                   ) : (

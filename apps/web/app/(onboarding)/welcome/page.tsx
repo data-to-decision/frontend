@@ -66,8 +66,8 @@ export default function WelcomePage() {
         <CardHeader className="text-center">
           {/* Celebration Icon */}
           <div className="relative mx-auto mb-6">
-            <div className="absolute -inset-4 bg-gradient-to-br from-[--color-accent-blue]/20 to-[--color-accent-purple]/20 rounded-full blur-xl" />
-            <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-[--color-accent-blue] to-[--color-accent-purple] flex items-center justify-center animate-celebrate">
+            <div className="absolute -inset-4 bg-[--color-accent-blue]/20 rounded-full blur-xl" />
+            <div className="relative w-20 h-20 rounded-full bg-[--color-accent-blue] flex items-center justify-center animate-celebrate">
               <Sparkles className="w-10 h-10 text-white" />
             </div>
           </div>
@@ -85,9 +85,9 @@ export default function WelcomePage() {
         <CardContent className="space-y-6">
           {/* Organization Card */}
           {isOrgCreator && (
-            <div className="p-5 rounded-xl bg-gradient-to-br from-[--color-accent-blue]/5 to-[--color-accent-purple]/5 border border-[--color-accent-blue]/20">
+            <div className="p-5 rounded-xl bg-[--color-accent-blue]/5 border border-[--color-accent-blue]/20">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[--color-accent-indigo] to-[--color-accent-purple] flex items-center justify-center text-white font-semibold text-xl">
+                <div className="w-14 h-14 rounded-xl bg-[--color-accent-indigo] flex items-center justify-center text-white font-semibold text-xl">
                   {orgName.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="flex-1">

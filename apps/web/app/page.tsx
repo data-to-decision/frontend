@@ -9,6 +9,7 @@ import {
   ArrowRight,
   BarChart3,
   FileText,
+  Layers,
 } from 'lucide-react';
 import {
   Button,
@@ -17,10 +18,6 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  Avatar,
-  AvatarImage,
-  AvatarFallback,
-  getInitials,
   Spinner,
 } from '@d2d/ui';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
@@ -151,19 +148,6 @@ export default function WorkspacePage() {
     }
   }, [checkMockAuth, checkApiAuth]);
 
-  const mockAuth = getMockAuth();
-  const displayUser = user || mockAuth.user;
-  const displayName = displayUser?.name?.split(' ')[0] || 'there';
-  const organizationName =
-    domainSignup?.organization?.name || mockAuth.domainSignup?.organization?.name;
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[--color-background-primary]">
@@ -184,34 +168,20 @@ export default function WorkspacePage() {
       {/* Main content */}
       <main className="flex-1 overflow-auto">
         <div className="p-8 max-w-5xl mx-auto">
-          {/* Welcome header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-4 mb-2">
-              <Avatar size="lg">
-                {displayUser?.avatarUrl && (
-                  <AvatarImage src={displayUser.avatarUrl} alt={displayName} />
-                )}
-                <AvatarFallback>
-                  {displayUser?.name ? getInitials(displayUser.name) : 'U'}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h1 className="text-2xl font-semibold text-[--color-label-primary]">
-                  {getGreeting()}, {displayName}!
-                </h1>
-                {organizationName && (
-                  <p className="text-[--color-label-secondary]">
-                    Welcome to {organizationName}
-                  </p>
-                )}
-              </div>
+          {/* Brand header */}
+          <div className="flex items-center justify-center gap-3 mb-12">
+            <div className="w-10 h-10 rounded-lg bg-[--color-accent-blue] flex items-center justify-center">
+              <Layers className="w-6 h-6 text-white" />
             </div>
+            <h1 className="text-4xl font-bold text-[--color-label-primary]">
+              Data2Decision
+            </h1>
           </div>
 
           {/* AI Assistant card */}
           <Card variant="elevated" padding="lg" className="mb-8">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[--color-accent-blue] to-[--color-accent-purple] flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-[--color-accent-blue] flex items-center justify-center shrink-0">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">

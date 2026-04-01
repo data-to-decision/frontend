@@ -487,7 +487,7 @@ export default function InvitationAcceptancePage() {
               {/* Organization/Team */}
               <div className="flex items-center gap-4 p-4 rounded-lg bg-[--color-background-primary] border border-[--color-separator]">
                 <Avatar size="lg">
-                  <AvatarFallback className="bg-gradient-to-br from-[--color-accent-indigo] to-[--color-accent-purple]">
+                  <AvatarFallback className="bg-[--color-accent-indigo]">
                     {invitation?.type === 'team' ? (
                       <Users className="w-6 h-6 text-white" />
                     ) : (

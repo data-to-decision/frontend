@@ -4,7 +4,6 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Layers,
   LayoutDashboard,
   Database,
   Sparkles,
@@ -13,14 +12,15 @@ import {
   LogOut,
   User,
   Building2,
-  ChevronLeft,
-  ChevronRight,
   HelpCircle,
   CreditCard,
   FileText,
   ChevronDown,
   Check,
   Mail,
+  PanelLeft,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import {
   Avatar,
@@ -35,6 +35,7 @@ import { setOrganizations, setCurrentOrganization } from '@/store/organization.s
 import { toggleCollapsed, initializeSidebar } from '@/store/sidebar.slice';
 import { clearMockAuth, getMockAuth } from '@/lib/mock-auth';
 import { listUserOrganizations, getPendingInvitations, OrganizationMembership } from '@/lib/api';
+import { useTheme } from '@/hooks/useTheme';
 
 interface SidebarItem {
   icon: React.ElementType;
@@ -68,6 +69,7 @@ export function Sidebar() {
   const { user, domainSignup } = useAppSelector((state) => state.auth);
   const { organizations, currentOrganization } = useAppSelector((state) => state.organization);
   const { isCollapsed } = useAppSelector((state) => state.sidebar);
+  const { resolvedTheme, toggleTheme } = useTheme();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showOrgDropdown, setShowOrgDropdown] = useState(false);
   const [pendingInvitationsCount, setPendingInvitationsCount] = useState(0);
@@ -180,9 +182,6 @@ export function Sidebar() {
     router.push('/login');
   };
 
-  const handleToggleCollapse = () => {
-    dispatch(toggleCollapsed());
-  };
 
   const mockAuth = getMockAuth();
   const displayUser = user || mockAuth.user;
@@ -209,18 +208,26 @@ export function Sidebar() {
         isCollapsed ? 'w-16' : 'w-64'
       } border-r border-[--color-separator] bg-[--color-background-secondary] flex flex-col transition-all duration-200 ease-in-out sticky top-0 h-screen shrink-0`}
     >
-      {/* Logo */}
-      <div className="p-4 border-b border-[--color-separator]">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[--color-accent-blue] to-[--color-accent-purple] flex items-center justify-center shrink-0">
-            <Layers className="w-5 h-5 text-white" />
-          </div>
-          {!isCollapsed && (
-            <span className="font-semibold text-[--color-label-primary] truncate">
-              Data2Decision
-            </span>
+      {/* Sidebar toggle and theme toggle */}
+      <div className={`p-2 flex items-center gap-1 ${isCollapsed ? 'flex-col' : ''}`}>
+        <button
+          onClick={() => dispatch(toggleCollapsed())}
+          className="w-8 h-8 rounded-lg hover:bg-[--color-fill-primary] flex items-center justify-center transition-colors"
+          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          <PanelLeft className="w-4 h-4 text-[--color-label-secondary]" />
+        </button>
+        <button
+          onClick={toggleTheme}
+          className="w-8 h-8 rounded-lg hover:bg-[--color-fill-primary] flex items-center justify-center transition-colors"
+          title={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {resolvedTheme === 'dark' ? (
+            <Sun className="w-4 h-4 text-[--color-label-secondary]" />
+          ) : (
+            <Moon className="w-4 h-4 text-[--color-label-secondary]" />
           )}
-        </div>
+        </button>
       </div>
 
       {/* Organization switcher */}
@@ -235,7 +242,7 @@ export function Sidebar() {
                   : 'cursor-default'
               }`}
             >
-              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[--color-accent-indigo] to-[--color-accent-purple] flex items-center justify-center shrink-0">
+              <div className="w-6 h-6 rounded-md bg-[--color-accent-indigo] flex items-center justify-center shrink-0">
                 {currentOrganization?.logoUrl ? (
                   <img
                     src={currentOrganization.logoUrl}
@@ -273,7 +280,7 @@ export function Sidebar() {
                         : 'text-[--color-label-secondary] hover:bg-[--color-fill-primary] hover:text-[--color-label-primary]'
                     }`}
                   >
-                    <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[--color-accent-indigo] to-[--color-accent-purple] flex items-center justify-center shrink-0">
+                    <div className="w-6 h-6 rounded-md bg-[--color-accent-indigo] flex items-center justify-center shrink-0">
                       {org.logoUrl ? (
                         <img
                           src={org.logoUrl}
@@ -302,7 +309,7 @@ export function Sidebar() {
       {(currentOrganization || organizationName) && isCollapsed && (
         <div className="px-2 py-2 border-b border-[--color-separator] flex justify-center">
           <div
-            className="w-8 h-8 rounded-md bg-gradient-to-br from-[--color-accent-indigo] to-[--color-accent-purple] flex items-center justify-center"
+            className="w-8 h-8 rounded-md bg-[--color-accent-indigo] flex items-center justify-center"
             title={currentOrganization?.name || organizationName}
           >
             {currentOrganization?.logoUrl ? (
@@ -373,24 +380,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-
-      {/* Collapse toggle */}
-      <div className="px-2 pb-2">
-        <button
-          onClick={handleToggleCollapse}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm text-[--color-label-tertiary] hover:bg-[--color-fill-primary] hover:text-[--color-label-primary] transition-colors"
-          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="w-4 h-4" />
-          ) : (
-            <>
-              <ChevronLeft className="w-4 h-4" />
-              <span>Collapse</span>
-            </>
-          )}
-        </button>
-      </div>
 
       {/* User section with dropdown */}
       <div className="p-2 border-t border-[--color-separator]" ref={dropdownRef}>

@@ -54,7 +54,7 @@ export default function OnboardingLayout({
       {/* Header with logo */}
       <header className="py-6 px-8">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[--color-accent-blue] to-[--color-accent-purple] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-[--color-accent-blue] flex items-center justify-center">
             <Layers className="w-5 h-5 text-white" />
           </div>
           <span className="font-semibold text-lg text-[--color-label-primary]">
