@@ -106,6 +106,7 @@ export function createMockUser(
     name: null,
     displayName: null,
     avatarUrl: null,
+    timezone: null,
     role: 'user',
     organizationId: domainSignup.organization?.id || null,
     organizationRole: domainSignup.action === 'organization_created' ? 'owner' : 'member',
