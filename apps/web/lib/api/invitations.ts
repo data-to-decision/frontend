@@ -209,24 +209,22 @@ export async function declineInvitation(
 }
 
 /**
- * Pending invitation response from backend
- * Similar to InvitationDetailsApiResponse but from the pending list endpoint
+ * Pending invitation response from backend (from /api/invitations/pending)
+ * This is the InvitationResponse model - simpler than the detail view
  */
 export interface PendingInvitationApiResponse {
   id: string;
   token: string;
   type: InvitationType;
-  organization_id: string;
+  organization_id: string | null;
   team_id: string | null;
   email: string;
   role: OrganizationRole;
+  is_guest: boolean;
   status: InvitationTokenStatus;
-  organization_name: string;
-  team_name: string | null;
-  inviter_name: string;
-  inviter_email: string;
+  message: string | null;
+  invited_by: string;
   expires_at: string;
-  is_expired: boolean;
   created_at: string;
 }
 
@@ -237,17 +235,15 @@ export interface PendingInvitation {
   id: string;
   token: string;
   type: InvitationType;
-  organizationId: string;
+  organizationId: string | null;
   teamId: string | null;
   email: string;
   role: OrganizationRole;
+  isGuest: boolean;
   status: InvitationTokenStatus;
-  organizationName: string;
-  teamName: string | null;
-  invitedByName: string;
-  invitedByEmail: string;
+  message: string | null;
+  invitedBy: string;
   expiresAt: string;
-  isExpired: boolean;
   createdAt: string;
 }
 
@@ -268,15 +264,21 @@ export function transformPendingInvitation(
     teamId: apiResponse.team_id,
     email: apiResponse.email,
     role: apiResponse.role,
+    isGuest: apiResponse.is_guest,
     status: apiResponse.status,
-    organizationName: apiResponse.organization_name,
-    teamName: apiResponse.team_name,
-    invitedByName: apiResponse.inviter_name,
-    invitedByEmail: apiResponse.inviter_email,
+    message: apiResponse.message,
+    invitedBy: apiResponse.invited_by,
     expiresAt: apiResponse.expires_at,
-    isExpired: apiResponse.is_expired,
     createdAt: apiResponse.created_at,
   };
+}
+
+/**
+ * Pending invitations list response from backend
+ */
+interface PendingInvitationsListApiResponse {
+  invitations: PendingInvitationApiResponse[];
+  count: number;
 }
 
 /**
@@ -289,8 +291,8 @@ export function transformPendingInvitation(
  * @throws ApiError if not authenticated or request fails
  */
 export async function getPendingInvitations(): Promise<PendingInvitation[]> {
-  const response = await authApi.get<PendingInvitationApiResponse[]>(
+  const response = await authApi.get<PendingInvitationsListApiResponse>(
     '/api/invitations/pending'
   );
-  return response.map(transformPendingInvitation);
+  return response.invitations.map(transformPendingInvitation);
 }

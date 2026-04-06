@@ -51,84 +51,85 @@ export default function OnboardingLayout({
 
   return (
     <div className="min-h-screen flex flex-col bg-[--color-background-secondary]">
-      {/* Header with logo */}
-      <header className="py-6 px-8">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[--color-accent-blue] flex items-center justify-center">
-            <Layers className="w-5 h-5 text-white" />
+      {/* Centered content with logo */}
+      <main className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-md animate-fade-in">
+          {/* Centered logo */}
+          <div className="flex flex-col items-center gap-2 mb-8">
+            <div className="w-12 h-12 rounded-xl bg-[--color-accent-blue] flex items-center justify-center">
+              <Layers className="w-7 h-7 text-white" />
+            </div>
+            <span className="font-semibold text-xl text-[--color-label-primary]">
+              Data2Decision
+            </span>
           </div>
-          <span className="font-semibold text-lg text-[--color-label-primary]">
-            Data2Decision
-          </span>
-        </div>
-      </header>
 
-      {/* Progress indicator - only for non-pending and non-welcome pages */}
-      {!isPending && !isWelcome && (
-        <div className="px-8 py-4 max-w-md mx-auto w-full">
-          {/* Back button */}
-          {canGoBack && (
-            <button
-              onClick={handleBack}
-              className="flex items-center gap-1 text-sm text-[--color-label-secondary] hover:text-[--color-label-primary] transition-colors mb-4"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Back
-            </button>
+          {/* Progress indicator - only for non-pending and non-welcome pages */}
+          {!isPending && !isWelcome && (
+            <div className="mb-6">
+              {/* Back button */}
+              {canGoBack && (
+                <button
+                  onClick={handleBack}
+                  className="flex items-center gap-1 text-sm text-[--color-label-secondary] hover:text-[--color-label-primary] transition-colors mb-4"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Back
+                </button>
+              )}
+
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-[--color-label-primary]">
+                  Step {currentStep} of {totalSteps}
+                </span>
+                <span className="text-sm text-[--color-label-secondary]">
+                  {filteredSteps[currentIndex]?.label || 'Setup'}
+                </span>
+              </div>
+              <Progress value={progress} />
+
+              {/* Step indicators */}
+              <div className="flex justify-between mt-4">
+                {filteredSteps.map((step, index) => {
+                  const StepIcon = step.icon;
+                  const isActive = index === currentIndex;
+                  const isCompleted = index < currentIndex;
+
+                  return (
+                    <div
+                      key={step.key}
+                      className={`flex items-center gap-2 ${
+                        isActive
+                          ? 'text-[--color-accent-blue]'
+                          : isCompleted
+                            ? 'text-[--color-accent-green]'
+                            : 'text-[--color-label-tertiary]'
+                      }`}
+                    >
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          isActive
+                            ? 'bg-[--color-accent-blue]/10'
+                            : isCompleted
+                              ? 'bg-[--color-accent-green]/10'
+                              : 'bg-[--color-fill-primary]'
+                        }`}
+                      >
+                        <StepIcon className="w-4 h-4" />
+                      </div>
+                      <span className="text-sm font-medium hidden sm:block">
+                        {step.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           )}
 
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-[--color-label-primary]">
-              Step {currentStep} of {totalSteps}
-            </span>
-            <span className="text-sm text-[--color-label-secondary]">
-              {filteredSteps[currentIndex]?.label || 'Setup'}
-            </span>
-          </div>
-          <Progress value={progress} />
-
-          {/* Step indicators */}
-          <div className="flex justify-between mt-4">
-            {filteredSteps.map((step, index) => {
-              const StepIcon = step.icon;
-              const isActive = index === currentIndex;
-              const isCompleted = index < currentIndex;
-
-              return (
-                <div
-                  key={step.key}
-                  className={`flex items-center gap-2 ${
-                    isActive
-                      ? 'text-[--color-accent-blue]'
-                      : isCompleted
-                        ? 'text-[--color-accent-green]'
-                        : 'text-[--color-label-tertiary]'
-                  }`}
-                >
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      isActive
-                        ? 'bg-[--color-accent-blue]/10'
-                        : isCompleted
-                          ? 'bg-[--color-accent-green]/10'
-                          : 'bg-[--color-fill-primary]'
-                    }`}
-                  >
-                    <StepIcon className="w-4 h-4" />
-                  </div>
-                  <span className="text-sm font-medium hidden sm:block">
-                    {step.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+          {/* Page content */}
+          {children}
         </div>
-      )}
-
-      {/* Centered content */}
-      <main className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md animate-fade-in">{children}</div>
       </main>
     </div>
   );

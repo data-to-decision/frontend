@@ -126,7 +126,12 @@ function AuditLogRow({ entry }: { entry: AuditLogEntry }) {
                 {getInitials(entry.actorName)}
               </AvatarFallback>
             </Avatar>
-            <span className="text-[--color-label-secondary]">{entry.actorName}</span>
+            <span className="text-[--color-label-secondary]">
+              {entry.actorName}
+              {entry.actorEmail && (
+                <span className="text-[--color-label-tertiary]"> ({entry.actorEmail})</span>
+              )}
+            </span>
           </span>
           <span className="flex items-center gap-1">
             <Clock className="w-3 h-3" />
@@ -135,35 +140,58 @@ function AuditLogRow({ entry }: { entry: AuditLogEntry }) {
           {entry.ipAddress && <span>IP: {entry.ipAddress}</span>}
         </div>
 
-        {/* Show metadata if available */}
+        {/* Show metadata if available - only render for actions we have formatting for */}
         {Object.keys(entry.metadata).length > 0 && (
-          <div className="mt-2 p-2 rounded-lg bg-[--color-fill-primary] text-xs">
-            {entry.action === 'member.invited' && entry.metadata.email ? (
-              <span className="text-[--color-label-secondary]">
-                Invited <span className="text-[--color-label-primary]">{String(entry.metadata.email)}</span> as {String(entry.metadata.role)}
-              </span>
-            ) : null}
-            {entry.action === 'member.role_changed' ? (
-              <span className="text-[--color-label-secondary]">
-                Changed role from <span className="text-[--color-label-primary]">{String(entry.metadata.from)}</span> to <span className="text-[--color-label-primary]">{String(entry.metadata.to)}</span>
-              </span>
-            ) : null}
-            {entry.action === 'connection.created' && entry.metadata.name ? (
-              <span className="text-[--color-label-secondary]">
-                Created <span className="text-[--color-label-primary]">{String(entry.metadata.type)}</span> connection: {String(entry.metadata.name)}
-              </span>
-            ) : null}
-            {entry.action === 'billing.plan_changed' ? (
-              <span className="text-[--color-label-secondary]">
-                Changed from <span className="text-[--color-label-primary]">{String(entry.metadata.from)}</span> to <span className="text-[--color-label-primary]">{String(entry.metadata.to)}</span>
-              </span>
-            ) : null}
-            {entry.action === 'organization.settings_updated' && entry.metadata.changes ? (
-              <span className="text-[--color-label-secondary]">
-                Updated: {(entry.metadata.changes as string[]).join(', ')}
-              </span>
-            ) : null}
-          </div>
+          <>
+            {entry.action === 'member.invited' && entry.metadata.email && (
+              <div className="mt-2 p-2 rounded-lg bg-[--color-fill-primary] text-xs">
+                <span className="text-[--color-label-secondary]">
+                  Invited <span className="text-[--color-label-primary]">{String(entry.metadata.email)}</span> as {String(entry.metadata.role)}
+                </span>
+              </div>
+            )}
+            {entry.action === 'member.role_changed' && (
+              <div className="mt-2 p-2 rounded-lg bg-[--color-fill-primary] text-xs">
+                <span className="text-[--color-label-secondary]">
+                  Changed role from <span className="text-[--color-label-primary]">{String(entry.metadata.from)}</span> to <span className="text-[--color-label-primary]">{String(entry.metadata.to)}</span>
+                </span>
+              </div>
+            )}
+            {entry.action === 'connection.created' && entry.metadata.name && (
+              <div className="mt-2 p-2 rounded-lg bg-[--color-fill-primary] text-xs">
+                <span className="text-[--color-label-secondary]">
+                  Created <span className="text-[--color-label-primary]">{String(entry.metadata.type)}</span> connection: {String(entry.metadata.name)}
+                </span>
+              </div>
+            )}
+            {entry.action === 'billing.plan_changed' && (
+              <div className="mt-2 p-2 rounded-lg bg-[--color-fill-primary] text-xs">
+                <span className="text-[--color-label-secondary]">
+                  Changed from <span className="text-[--color-label-primary]">{String(entry.metadata.from)}</span> to <span className="text-[--color-label-primary]">{String(entry.metadata.to)}</span>
+                </span>
+              </div>
+            )}
+            {entry.action === 'organization.settings_updated' && entry.metadata.changes && (
+              <div className="mt-2 p-2 rounded-lg bg-[--color-fill-primary] text-xs">
+                <span className="text-[--color-label-secondary]">
+                  Updated: {(entry.metadata.changes as string[]).join(', ')}
+                </span>
+              </div>
+            )}
+            {entry.action === 'session.revoked' && entry.metadata.reason && (
+              <div className="mt-2 p-2 rounded-lg bg-[--color-fill-primary] text-xs">
+                <span className="text-[--color-label-secondary]">
+                  Reason: <span className="text-[--color-label-primary]">{String(entry.metadata.reason)}</span>
+                  {entry.metadata.browser && (
+                    <> on {String(entry.metadata.browser)}</>
+                  )}
+                  {entry.metadata.os && (
+                    <> ({String(entry.metadata.os)})</>
+                  )}
+                </span>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -205,13 +233,16 @@ export default function OrganizationAuditLogPage() {
       return actors;
     }
     // Derive unique actors from actual entries in API mode
-    const actorsMap = new Map<string, string>();
+    const actorsMap = new Map<string, { name: string; email: string | null }>();
     auditLog.forEach((entry) => {
       if (entry.actorId && !actorsMap.has(entry.actorId)) {
-        actorsMap.set(entry.actorId, entry.actorName);
+        actorsMap.set(entry.actorId, { name: entry.actorName, email: entry.actorEmail });
       }
     });
-    return Array.from(actorsMap.entries()).map(([id, name]) => ({ id, name }));
+    return Array.from(actorsMap.entries()).map(([id, { name, email }]) => ({
+      id,
+      name: email ? `${name} (${email})` : name,
+    }));
   }, [auditLog, actors]);
 
   // Load entries using mock or API based on feature flag

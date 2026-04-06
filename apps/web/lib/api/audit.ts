@@ -7,24 +7,23 @@ import { authApi } from './authenticated-client';
 
 interface AuditLogApiResponse {
   id: string;
-  organization_id: string;
-  actor_type: string;
   actor_id: string | null;
+  actor_name: string | null;
   actor_email: string | null;
+  actor_type: string;
+  actor_ip: string | null;
   action: string;
   resource_type: string;
   resource_id: string | null;
   changes: Record<string, unknown> | null;
-  metadata: Record<string, unknown> | null;
-  ip_address: string | null;
-  user_agent: string | null;
   created_at: string;
 }
 
 interface AuditLogListApiResponse {
   entries: AuditLogApiResponse[];
   total: number;
-  has_more: boolean;
+  limit: number;
+  offset: number;
 }
 
 export interface AuditLogListResult {
@@ -64,18 +63,19 @@ function deriveNameFromEmail(email: string | null): string {
 function transformAuditLogEntry(entry: AuditLogApiResponse): AuditLogEntry {
   return {
     id: entry.id,
-    organizationId: entry.organization_id,
+    organizationId: '', // Not returned by backend
     actorType: entry.actor_type,
     actorId: entry.actor_id,
-    actorName: deriveNameFromEmail(entry.actor_email),
+    // Use actual name from API, fall back to deriving from email
+    actorName: entry.actor_name || deriveNameFromEmail(entry.actor_email),
     actorEmail: entry.actor_email,
     action: entry.action,
     resourceType: entry.resource_type,
     resourceId: entry.resource_id,
     changes: entry.changes,
-    metadata: entry.metadata || {},
-    ipAddress: entry.ip_address,
-    userAgent: entry.user_agent,
+    metadata: entry.changes || {}, // Use changes as metadata fallback
+    ipAddress: entry.actor_ip,
+    userAgent: null,
     createdAt: entry.created_at,
   };
 }
@@ -117,12 +117,15 @@ export async function getAuditLogs(
   }
 
   const response = await authApi.get<AuditLogListApiResponse>(
-    `/api/organizations/${organizationId}/audit?${params.toString()}`
+    `/api/organizations/${organizationId}/audit-log?${params.toString()}`
   );
+
+  // Calculate hasMore based on offset, limit, and total
+  const hasMore = response.offset + response.entries.length < response.total;
 
   return {
     entries: response.entries.map(transformAuditLogEntry),
     total: response.total,
-    hasMore: response.has_more,
+    hasMore,
   };
 }

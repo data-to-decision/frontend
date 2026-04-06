@@ -9,8 +9,9 @@ import { Mail, ArrowRight, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Button, Input, Card, CardHeader, CardTitle, CardDescription, CardContent, Spinner } from '@d2d/ui';
 import { useAppDispatch } from '@/hooks/useStore';
 import { determineDomainAction, setDomainSignup, setLoading, setError } from '@/store/auth.slice';
-import { setMockAuth } from '@/lib/mock-auth';
-import { requestMagicLink, ApiError } from '@/lib/api';
+import { setMockAuth, getMockAuth } from '@/lib/mock-auth';
+import { requestMagicLink, getCurrentUser, ApiError } from '@/lib/api';
+import { hasStoredSession, clearTokens } from '@/lib/auth/tokens';
 import type { MagicLinkResponse, DomainSignupResult } from '@d2d/types';
 
 const USE_MOCK_AUTH = process.env.NEXT_PUBLIC_USE_MOCK_AUTH === 'true';
@@ -91,9 +92,46 @@ function LoginContent() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isResending, setIsResending] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
 
   // Get returnUrl from URL params (e.g., from invitation flow)
   const returnUrl = searchParams.get('returnUrl');
+
+  // Check for existing session on mount
+  useEffect(() => {
+    async function checkExistingSession() {
+      const redirectTo = returnUrl || '/';
+
+      if (USE_MOCK_AUTH) {
+        // Mock mode: check localStorage for mock auth data
+        const mockAuth = getMockAuth();
+        if (mockAuth.user) {
+          router.replace(redirectTo);
+          return;
+        }
+        setIsCheckingSession(false);
+      } else {
+        // API mode: check for stored session and validate it
+        if (!hasStoredSession()) {
+          setIsCheckingSession(false);
+          return;
+        }
+
+        try {
+          // Try to get the current user to validate the session
+          await getCurrentUser();
+          // Session is valid, redirect to home or returnUrl
+          router.replace(redirectTo);
+        } catch {
+          // Session is invalid, clear tokens and show login form
+          clearTokens();
+          setIsCheckingSession(false);
+        }
+      }
+    }
+
+    checkExistingSession();
+  }, [router, returnUrl]);
 
   const {
     register,
@@ -187,6 +225,23 @@ function LoginContent() {
     setSubmittedEmail('');
     setDomainInfo(null);
   };
+
+  // Show loading state while checking for existing session
+  if (isCheckingSession) {
+    return (
+      <Card variant="elevated" padding="lg">
+        <CardHeader className="text-center">
+          <div className="mx-auto w-16 h-16 rounded-full bg-[--color-fill-primary] flex items-center justify-center mb-4">
+            <Spinner size="lg" />
+          </div>
+          <CardTitle className="text-2xl">Checking session...</CardTitle>
+          <CardDescription className="mt-2">
+            Please wait while we verify your session.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   // Check email state - show after submission
   if (isSubmitted && domainInfo) {

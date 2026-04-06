@@ -31,7 +31,7 @@ import {
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
 import { logout, setAuthenticated, setDomainSignup } from '@/store/auth.slice';
 import { resetOnboarding } from '@/store/onboarding.slice';
-import { setOrganizations, setCurrentOrganization } from '@/store/organization.slice';
+import { setOrganizations, setCurrentOrganization, setCurrentUserRole } from '@/store/organization.slice';
 import { toggleCollapsed, initializeSidebar } from '@/store/sidebar.slice';
 import { clearMockAuth, getMockAuth } from '@/lib/mock-auth';
 import { listUserOrganizations, getPendingInvitations, OrganizationMembership } from '@/lib/api';
@@ -82,10 +82,15 @@ export function Sidebar() {
     dispatch(initializeSidebar());
   }, [dispatch]);
 
+  // Store membership data for role lookup
+  const [memberships, setMemberships] = useState<OrganizationMembership[]>([]);
+
   // Fetch user organizations
   const fetchOrganizations = useCallback(async () => {
     try {
       const orgs = await listUserOrganizations();
+      setMemberships(orgs); // Store memberships for role lookup
+
       // Convert OrganizationMembership to Organization format for the store
       const orgList = orgs.map((org) => ({
         id: org.id,
@@ -107,6 +112,10 @@ export function Sidebar() {
       if (selectedOrg) {
         dispatch(setCurrentOrganization(selectedOrg));
         localStorage.setItem(SELECTED_ORG_KEY, selectedOrg.id);
+
+        // Set the user's role for the selected organization
+        const membership = orgs.find((o) => o.id === selectedOrg.id);
+        dispatch(setCurrentUserRole(membership?.role || null));
       }
     } catch (error) {
       console.error('Failed to fetch organizations:', error);
@@ -171,6 +180,11 @@ export function Sidebar() {
     dispatch(setCurrentOrganization(org));
     localStorage.setItem(SELECTED_ORG_KEY, org.id);
     setShowOrgDropdown(false);
+
+    // Set the user's role for the selected organization
+    const membership = memberships.find((m) => m.id === org.id);
+    dispatch(setCurrentUserRole(membership?.role || null));
+
     // Optionally refresh the page to reload org-specific data
     // router.refresh();
   };

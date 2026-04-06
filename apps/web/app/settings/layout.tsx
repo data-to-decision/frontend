@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Settings,
   FileText,
+  UserPlus,
 } from 'lucide-react';
 import { Spinner } from '@d2d/ui';
 import { useAppDispatch, useAppSelector } from '@/hooks/useStore';
@@ -52,7 +53,7 @@ const SETTINGS_SECTIONS: SettingsSection[] = [
 const ORGANIZATION_SECTIONS: SettingsSection[] = [
   { id: 'organization', icon: Building2, label: 'General', href: '/settings/organization', description: 'Organization info' },
   { id: 'org-members', icon: Users, label: 'Members', href: '/settings/organization/members', description: 'Manage organization members' },
-  { id: 'org-settings', icon: Settings, label: 'Settings', href: '/settings/organization/settings', description: 'Organization settings', adminOnly: true },
+  { id: 'org-join-requests', icon: UserPlus, label: 'Join Requests', href: '/settings/organization/join-requests', description: 'Review join requests', adminOnly: true },
   { id: 'org-audit', icon: FileText, label: 'Audit Log', href: '/settings/organization/audit', description: 'View audit log', adminOnly: true },
 ];
 
@@ -65,6 +66,7 @@ export default function SettingsLayout({
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   const { user, domainSignup } = useAppSelector((state) => state.auth);
+  const { currentOrganization, currentUserRole } = useAppSelector((state) => state.organization);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticatedState] = useState(false);
   const hasCheckedAuth = useRef(false);
@@ -138,7 +140,9 @@ export default function SettingsLayout({
 
   const mockAuth = getMockAuth();
   const organizationName =
-    domainSignup?.organization?.name || mockAuth.domainSignup?.organization?.name;
+    currentOrganization?.name ||
+    domainSignup?.organization?.name ||
+    mockAuth.domainSignup?.organization?.name;
 
   // Determine active section from pathname
   const getActiveSection = () => {
@@ -239,8 +243,7 @@ export default function SettingsLayout({
                           .filter((section) => {
                             // Filter out admin-only sections for non-admin users
                             if (section.adminOnly) {
-                              const userRole = user?.organizationRole;
-                              return userRole === 'owner' || userRole === 'admin';
+                              return currentUserRole === 'owner' || currentUserRole === 'admin';
                             }
                             return true;
                           })

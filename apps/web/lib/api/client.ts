@@ -12,7 +12,8 @@ export class ApiError extends Error {
     public statusCode: number,
     public userMessage: string,
     public technicalMessage: string,
-    public code?: string
+    public code?: string,
+    public details?: Record<string, unknown>
   ) {
     super(userMessage);
     this.name = 'ApiError';
@@ -133,7 +134,7 @@ export async function apiRequest<TResponse, TBody = unknown>(
   const isJson = contentType?.includes('application/json');
 
   if (!response.ok) {
-    let errorBody: { detail?: string; code?: string } | undefined;
+    let errorBody: { detail?: string | Record<string, unknown>; code?: string } | undefined;
 
     if (isJson) {
       try {
@@ -143,13 +144,32 @@ export async function apiRequest<TResponse, TBody = unknown>(
       }
     }
 
-    const { userMessage, code } = mapErrorToUserMessage(response.status, errorBody);
+    // Extract code and details - handle both string and object detail formats
+    let errorCode = errorBody?.code;
+    let errorDetails: Record<string, unknown> | undefined;
+    let technicalMessage = `HTTP ${response.status}`;
+
+    if (typeof errorBody?.detail === 'object' && errorBody.detail !== null) {
+      // Detail is an object (e.g., { code: "...", message: "...", ... })
+      const detailObj = errorBody.detail as Record<string, unknown>;
+      errorCode = errorCode || (detailObj.code as string);
+      errorDetails = detailObj;
+      technicalMessage = (detailObj.message as string) || technicalMessage;
+    } else if (typeof errorBody?.detail === 'string') {
+      technicalMessage = errorBody.detail;
+    }
+
+    const { userMessage, code } = mapErrorToUserMessage(response.status, {
+      detail: typeof errorBody?.detail === 'string' ? errorBody.detail : undefined,
+      code: errorCode
+    });
 
     throw new ApiError(
       response.status,
-      userMessage,
-      errorBody?.detail || `HTTP ${response.status}`,
-      code || errorBody?.code
+      errorDetails?.message as string || userMessage,
+      technicalMessage,
+      code || errorCode,
+      errorDetails
     );
   }
 

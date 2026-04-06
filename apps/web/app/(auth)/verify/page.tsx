@@ -14,7 +14,7 @@ import {
   createMockUser,
   simulateVerification,
 } from '@/lib/mock-auth';
-import { verifyMagicLink, ApiError } from '@/lib/api';
+import { verifyMagicLink, getPendingInvitations, ApiError } from '@/lib/api';
 import { setAccessToken } from '@/lib/auth/tokens';
 import type { DomainSignupResult, User, DomainSignupApiResult, OnboardingStatus, TokenResponseUser } from '@d2d/types';
 
@@ -41,7 +41,12 @@ function transformTokenResponseUser(apiUser: TokenResponseUser): User {
 
 const USE_MOCK_AUTH = process.env.NEXT_PUBLIC_USE_MOCK_AUTH === 'true';
 
-type VerificationState = 'verifying' | 'success' | 'error' | 'expired' | 'deactivated';
+type VerificationState = 'verifying' | 'success' | 'error' | 'expired' | 'deactivated' | 'join_request_pending';
+
+interface JoinRequestPendingInfo {
+  organizationName: string;
+  organizationSlug: string;
+}
 
 /**
  * Convert API domain signup result to local format
@@ -105,6 +110,7 @@ function VerifyContent() {
   const { domainSignup } = useAppSelector((state) => state.auth);
   const [state, setState] = useState<VerificationState>('verifying');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [joinRequestInfo, setJoinRequestInfo] = useState<JoinRequestPendingInfo | null>(null);
   // Track the last verified token instead of a boolean to allow re-verification with different tokens
   const [lastVerifiedToken, setLastVerifiedToken] = useState<string | null>(null);
 
@@ -205,6 +211,14 @@ function VerifyContent() {
             setState('expired');
           } else if (error.code === 'ACCOUNT_DEACTIVATED') {
             setState('deactivated');
+          } else if (error.code === 'join_request_pending') {
+            // User has a pending join request - they cannot login until approved
+            const details = error.details as { organization?: { name?: string; slug?: string } } | undefined;
+            setJoinRequestInfo({
+              organizationName: details?.organization?.name || 'the organization',
+              organizationSlug: details?.organization?.slug || '',
+            });
+            setState('join_request_pending');
           } else {
             setErrorMessage(error.userMessage);
             setState('error');
@@ -232,27 +246,42 @@ function VerifyContent() {
       }
     }
 
-    function handleVerificationSuccess(
+    async function handleVerificationSuccess(
       onboardingStatus: OnboardingStatus | undefined,
       action: DomainSignupResult['action'] | undefined
     ) {
       setState('success');
 
       // Short delay to show success, then redirect based on flow
-      setTimeout(() => {
+      setTimeout(async () => {
         // Check if there's a returnUrl from the login flow (e.g., invitation acceptance)
         const mockAuth = getMockAuth();
         const storedReturnUrl = mockAuth.returnUrl;
 
-        // If user has already completed onboarding, go to returnUrl or dashboard
-        // Clear the returnUrl only when we actually use it
+        // If user has already completed onboarding, check for pending invitations first
         if (onboardingStatus === 'completed') {
+          // If there's a stored returnUrl (e.g., from clicking an invitation link), use it
           if (storedReturnUrl) {
             setMockAuth({ returnUrl: null });
             router.push(storedReturnUrl);
-          } else {
-            router.push('/');
+            return;
           }
+
+          // Check for pending invitations
+          try {
+            const pendingInvitations = await getPendingInvitations();
+            if (pendingInvitations.length > 0) {
+              // Redirect to the first pending invitation
+              router.push(`/invitations/${pendingInvitations[0].token}`);
+              return;
+            }
+          } catch (error) {
+            // If checking invitations fails, just continue to dashboard
+            console.error('Failed to check pending invitations:', error);
+          }
+
+          // No pending invitations - go to dashboard
+          router.push('/');
           return;
         }
 
@@ -364,6 +393,19 @@ function VerifyContent() {
             </CardDescription>
           </>
         )}
+
+        {state === 'join_request_pending' && (
+          <>
+            <div className="mx-auto w-16 h-16 rounded-full bg-[--color-accent-blue]/10 flex items-center justify-center mb-4">
+              <RefreshCw className="w-8 h-8 text-[--color-accent-blue]" />
+            </div>
+            <CardTitle className="text-2xl">Request pending</CardTitle>
+            <CardDescription className="mt-2">
+              Your request to join <span className="font-medium">{joinRequestInfo?.organizationName}</span> is pending approval.
+              You&apos;ll receive an email once an admin reviews your request.
+            </CardDescription>
+          </>
+        )}
       </CardHeader>
 
       <CardContent>
@@ -421,6 +463,21 @@ function VerifyContent() {
             >
               Contact Support
             </Button>
+            <Link
+              href="/login"
+              className="block text-center text-sm text-[--color-accent-blue] hover:underline"
+            >
+              Back to sign in
+            </Link>
+          </div>
+        )}
+
+        {state === 'join_request_pending' && (
+          <div className="space-y-3">
+            <p className="text-sm text-[--color-label-secondary] text-center">
+              We&apos;ve notified the organization administrators about your request.
+              This usually takes 1-2 business days.
+            </p>
             <Link
               href="/login"
               className="block text-center text-sm text-[--color-accent-blue] hover:underline"

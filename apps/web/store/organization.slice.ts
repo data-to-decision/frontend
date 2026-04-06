@@ -11,6 +11,7 @@ import type {
 const initialState: OrganizationState = {
   organizations: [],
   currentOrganization: null,
+  currentUserRole: null,
   members: [],
   settings: null,
   auditLog: [],
@@ -34,6 +35,9 @@ const organizationSlice = createSlice({
     },
     setCurrentOrganization: (state, action: PayloadAction<Organization | null>) => {
       state.currentOrganization = action.payload;
+    },
+    setCurrentUserRole: (state, action: PayloadAction<OrganizationRole | null>) => {
+      state.currentUserRole = action.payload;
     },
     updateOrganization: (state, action: PayloadAction<Partial<Organization>>) => {
       if (state.currentOrganization) {
@@ -93,6 +97,7 @@ export const {
   setError,
   setOrganizations,
   setCurrentOrganization,
+  setCurrentUserRole,
   updateOrganization,
   deleteOrganization,
   setMembers,

@@ -319,6 +319,7 @@ export interface AuditLogEntry {
 export interface OrganizationState {
   organizations: Organization[];
   currentOrganization: Organization | null;
+  currentUserRole: OrganizationRole | null;
   members: OrganizationMember[];
   settings: OrganizationSettings | null;
   auditLog: AuditLogEntry[];
