@@ -217,13 +217,17 @@ export interface PendingInvitationApiResponse {
   token: string;
   type: InvitationType;
   organization_id: string | null;
+  organization_name: string | null;
   team_id: string | null;
+  team_name: string | null;
   email: string;
   role: OrganizationRole;
   is_guest: boolean;
   status: InvitationTokenStatus;
   message: string | null;
   invited_by: string;
+  inviter_name: string | null;
+  inviter_email: string | null;
   expires_at: string;
   created_at: string;
 }
@@ -236,13 +240,17 @@ export interface PendingInvitation {
   token: string;
   type: InvitationType;
   organizationId: string | null;
+  organizationName: string | null;
   teamId: string | null;
+  teamName: string | null;
   email: string;
   role: OrganizationRole;
   isGuest: boolean;
   status: InvitationTokenStatus;
   message: string | null;
   invitedBy: string;
+  invitedByName: string | null;
+  invitedByEmail: string | null;
   expiresAt: string;
   createdAt: string;
 }
@@ -261,13 +269,17 @@ export function transformPendingInvitation(
     token: apiResponse.token,
     type: apiResponse.type,
     organizationId: apiResponse.organization_id,
+    organizationName: apiResponse.organization_name,
     teamId: apiResponse.team_id,
+    teamName: apiResponse.team_name,
     email: apiResponse.email,
     role: apiResponse.role,
     isGuest: apiResponse.is_guest,
     status: apiResponse.status,
     message: apiResponse.message,
     invitedBy: apiResponse.invited_by,
+    invitedByName: apiResponse.inviter_name,
+    invitedByEmail: apiResponse.inviter_email,
     expiresAt: apiResponse.expires_at,
     createdAt: apiResponse.created_at,
   };

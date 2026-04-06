@@ -182,12 +182,12 @@ function AuditLogRow({ entry }: { entry: AuditLogEntry }) {
               <div className="mt-2 p-2 rounded-lg bg-[--color-fill-primary] text-xs">
                 <span className="text-[--color-label-secondary]">
                   Reason: <span className="text-[--color-label-primary]">{String(entry.metadata.reason)}</span>
-                  {entry.metadata.browser && (
+                  {entry.metadata.browser ? (
                     <> on {String(entry.metadata.browser)}</>
-                  )}
-                  {entry.metadata.os && (
+                  ) : null}
+                  {entry.metadata.os ? (
                     <> ({String(entry.metadata.os)})</>
-                  )}
+                  ) : null}
                 </span>
               </div>
             )}

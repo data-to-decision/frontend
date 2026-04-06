@@ -123,7 +123,7 @@ export default function InvitationsListPage() {
         console.error('Failed to refresh organizations:', err);
       }
 
-      setSuccessMessage(`You've joined ${invitation.organizationName}!`);
+      setSuccessMessage("You've successfully joined the organization!");
 
       // Remove the accepted invitation from the list
       setInvitations((prev) => prev.filter((inv) => inv.id !== invitation.id));
@@ -148,7 +148,7 @@ export default function InvitationsListPage() {
 
       // Remove the declined invitation from the list
       setInvitations((prev) => prev.filter((inv) => inv.id !== invitation.id));
-      setSuccessMessage(`Invitation to ${invitation.organizationName} declined.`);
+      setSuccessMessage("Invitation declined.");
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.userMessage);

@@ -121,7 +121,7 @@ function JoinRequestRow({ request, onApprove, onReject, isProcessing }: JoinRequ
         </Select>
 
         <Button
-          variant="primary"
+          variant="filled"
           size="sm"
           onClick={handleApprove}
           disabled={isProcessing || isApproving}
